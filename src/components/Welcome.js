@@ -10,7 +10,7 @@ const Welcome = () => {
     paddingLeft: '450px',
     paddingRight: '450px',
     position: 'relative',
-    background: 'url("315c2d2d07e1031080b73a6d8c683263.webp")',
+    background: 'url("/background-image.jpg")', // Updated path
     backgroundSize: 'cover',
     backgroundAttachment: 'fixed',
     height: '100vh', // Set to 100% of the viewport height
