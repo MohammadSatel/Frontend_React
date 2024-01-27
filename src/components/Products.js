@@ -1,78 +1,68 @@
-import axios from 'axios'
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import ProdDisp from './ProdDisp'
-import { Row } from 'react-bootstrap'
-import Cart from './Cart'
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import ProdDisp from './ProdDisp';
+import { Row } from 'react-bootstrap';
+import Cart from './Cart';
 
-
-const Products = (props) => {
-    const { catID } = useParams()
-    const [prods, setprods] = useState([])
-    const [cart, setcart] = useState([])
-    const [refresh, setrefresh] = useState(false)
-    const [total, settotal] = useState(0)
-    const [clearCart, setclearCart] = useState(false)
-    const [paynow, setpaynow] = useState(false)
-    const SERVER = 'https://super-django-1.onrender.com/products'
-
+const Products = () => {
+    const { catID } = useParams();
+    const [prods, setProds] = useState([]);
+    const [cart, setCart] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [payNow, setPayNow] = useState(false);
+    const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:3000/';
 
     useEffect(() => {
         const storedCart = JSON.parse(localStorage.getItem('cart'));
-        storedCart && setcart(storedCart);
-        if (catID) {
-            axios.get(`${SERVER}/${catID}`).then((res) => setprods(res.data));
-        } else {
-            axios.get(SERVER).then((res) => setprods(res.data));
-        }
+        if (storedCart) setCart(storedCart);
+
+        const fetchProducts = async () => {
+            const endpoint = catID ? `${SERVER_URL}/${catID}` : SERVER_URL;
+            const response = await axios.get(endpoint);
+            setProds(response.data);
+        };
+
+        fetchProducts();
     }, [catID]);
 
     useEffect(() => {
-        let tempTotal = 0;
-        cart.forEach((item) => { tempTotal += item.price * item.amount });
-        settotal(parseFloat(tempTotal.toFixed(2)));
-    }, [cart, refresh]);
+        const tempTotal = cart.reduce((acc, item) => acc + item.price * item.amount, 0);
+        setTotal(parseFloat(tempTotal.toFixed(2)));
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }, [cart]);
 
-    useEffect(() => {
-        if (cart.length > 0 || clearCart) {
-            localStorage.setItem('cart', JSON.stringify(cart));
-        }
-    }, [cart, refresh, clearCart]);
+    const updateCart = (newCart) => {
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+    };
 
-    const buy = (item, quantity = 1, del = null) => {
-        const current_prod = cart.find(prod => prod.id === item.id)
-        if (del) {
-            setcart(cart.filter(prod => prod.id !== current_prod.id))//remove item from cart when function was called with some 'del' var
-            setclearCart(!clearCart)
-        }
-        if (current_prod) {
-            if (current_prod.amount + quantity === 0) {
-                setcart(cart.filter(prod => prod.id !== current_prod.id))//remove item from cart when amount = 0
-                setclearCart(!clearCart)
+    const buy = (item, quantity = 1) => {
+        const existingItem = cart.find(prod => prod.id === item.id);
+        if (existingItem) {
+            if (existingItem.amount + quantity <= 0) {
+                updateCart(cart.filter(prod => prod.id !== item.id)); // Remove item from cart
             } else {
-                current_prod.amount += quantity//update item mount
-                setrefresh(!refresh)
+                updateCart(cart.map(prod => prod.id === item.id ? { ...prod, amount: prod.amount + quantity } : prod)); // Update item quantity
             }
-        } else {
-            let tempItem = { desc: item.desc, id: item.id, amount: 1, img: item.img, price: item.price }
-            setcart([...cart, tempItem]);//create new item in cart when dosnt exist already
+        } else if (quantity > 0) {
+            updateCart([...cart, { ...item, amount: quantity }]); // Add new item to cart
         }
-    }
+    };
 
     return (
-        <div style={{ display: 'flex', marginBottom: '55px' }}>
-            <div style={{ flex: 1, marginRight: '10px' }}>
+        <div className="products-layout">
+            <div className="products-list">
                 <Row xs={1} md={2} className="g-4">
                     {prods.map(prod => <ProdDisp key={prod.id} prod={prod} buy={buy} />)}
                 </Row>
             </div>
-            <div style={{ borderLeft: '1px solid grey', height: '100hv', margin: '0 10px' }}></div>
-            <div style={{ width: '400px' }}>
-                <Cart cart={cart} total={total} setcart={setcart} setclearCart={setclearCart} buy={buy} Toast={props.Toast} setpaynow={setpaynow} paynow={paynow} />
+            <div className="cart-divider"></div>
+            <div className="cart-section">
+                <Cart cart={cart} total={total} updateCart={updateCart} buy={buy} setPayNow={setPayNow} payNow={payNow} />
             </div>
         </div>
+    );
+};
 
-    )
-}
-
-export default Products
+export default Products;

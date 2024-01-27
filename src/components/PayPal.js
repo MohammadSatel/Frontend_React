@@ -1,41 +1,36 @@
 import React from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
-
-const Pay = () => {
+const Pay = ({ amount }) => { // Accept `amount` as a prop if it's dynamic
   const paypalOptions = {
-    'client-id': "AUTlrZZv8vhrmzH5pWj9SlnXWAwaRoADtv8LGD3EwZC9htHEz9zX-PEGTbgHt-cyMxQqga0ga1y5C2Zg", // Replace with your actual PayPal client ID
+    'client-id': process.env.REACT_APP_PAYPAL_CLIENT_ID, // Use an environment variable for the client ID
     currency: 'USD',
+    // Add any additional PayPal options here
   };
-
 
   const createOrder = (data, actions) => {
     return actions.order.create({
-      purchase_units: [
-        {
-          amount: {
-            value: 10 // Replace with the amount you want to charge
-          },
+      purchase_units: [{
+        amount: {
+          value: amount, // Use the dynamic amount passed as a prop
         },
-      ],
+      }],
     });
   };
-
 
   const onApprove = (data, actions) => {
-    return actions.order.capture().then(function (details) {
-      // Handle successful payment
-      console.log(details);
-      // You can add more logic here, like updating the UI or notifying the user
+    return actions.order.capture().then(details => {
+      // Implement logic for a successful transaction here
+      console.log('Payment successful:', details);
+      // e.g., update order status in your database, redirect to a success page, etc.
     });
   };
 
-
   const onError = (err) => {
-    // Handle errors
-    console.error(err);
+    // Implement error handling logic
+    console.error('Payment error:', err);
+    // e.g., display a user-friendly error message, log error details, etc.
   };
-
 
   return (
     <PayPalScriptProvider options={paypalOptions}>
@@ -47,6 +42,5 @@ const Pay = () => {
     </PayPalScriptProvider>
   );
 };
-
 
 export default Pay;

@@ -3,14 +3,12 @@ import { Link } from 'react-router-dom';
 
 const Welcome = () => {
   const containerStyle = {
-    // maxWidth: '600px',
-    margin: '0 auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     textAlign: 'center',
     padding: '30px',
-    paddingLeft: '450px',
-    paddingRight: '450px',
-    position: 'relative',
-    background: 'url("/background-image.jpg")', // Updated path
+    background: 'url("/background-image.jpg") no-repeat center center', // Ensures the image covers the available space without repeating
     backgroundSize: 'cover',
     backgroundAttachment: 'fixed',
     height: '100vh', // Set to 100% of the viewport height
@@ -21,6 +19,8 @@ const Welcome = () => {
     padding: '20px',
     borderRadius: '10px',
     backdropFilter: 'blur(5px)', // Adjust the blur as needed
+    maxWidth: '600px', // Sets a max width for the content
+    width: '100%', // Ensures it doesn't exceed the width of its parent
   };
 
   const linkStyle = {
@@ -29,16 +29,16 @@ const Welcome = () => {
     backgroundColor: '#007BFF',
     color: '#fff',
     borderRadius: '5px',
+    marginTop: '20px', // Adds some space above the link
+    display: 'inline-block', // Necessary for margins to work on inline elements like <a>
   };
 
   return (
     <div style={containerStyle}>
       <div style={overlayStyle}>
-        <h2>Welcome to My Supermarket</h2>
-
-<br></br>
-
-        <Link to={'categories'} style={linkStyle}>Explore the Shop</Link>
+        <h1>Welcome to Our Site!</h1>
+        <p>Your journey starts here.</p>
+        <Link to="/explore" style={linkStyle}>Explore Now</Link>
       </div>
     </div>
   );

@@ -1,58 +1,55 @@
 import axios from 'axios';
 import { MDBBtn, MDBContainer, MDBInput } from 'mdb-react-ui-kit';
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Context } from '../App';
+import { UserContext } from '../App';
 
 const Register = () => {
-  const [token, settoken] = useState("");
-  const [uName, setuName] = useState("");
-  const [pwd, setpwd] = useState("");
-  const [Email, setEmail] = useState("")
-  const { uservalue } = useContext(Context)
-  const [user, setuser] = uservalue
+  const [uName, setUName] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [email, setEmail] = useState("");
+  const { uservalue } = useContext(UserContext);
+  const [user, setUser] = uservalue;
   const navigate = useNavigate();
-  const SERVER = 'https://super-django-1.onrender.com/'
+  const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:3000/';
 
-  const doRegister = () => {
-    if (!uName || !pwd || !Email) {
+  const doRegister = async () => {
+    if (!uName || !pwd || !email) {
       toast.error('All fields are required');
       return;
     }
-    toast.promise(
-      axios.post(SERVER + 'register', { username: uName, password: pwd, email: Email }).then(res => {
-        toast.success('user created successfuly!')
-        axios.post(SERVER + 'login/', { username: uName, password: pwd })
-          .then(res => {
-            const tempToken = res.data.access
-            settoken(tempToken);
-            sessionStorage.setItem('token', tempToken);
-            const object = JSON.parse(atob(tempToken.split('.')[1]))
-            setuser(object.username)
-            toast(`you are logged in now`)
-            navigate('/categories');
-          });
-      }),
-      { pending: 'Proccessing...' }
-    )
-  }
 
+    try {
+      const registerResponse = await axios.post(`${SERVER_URL}register`, { username: uName, password: pwd, email });
+      toast.success('User created successfully!');
 
+      const loginResponse = await axios.post(`${SERVER_URL}login/`, { username: uName, password: pwd });
+      const tempToken = loginResponse.data.access;
+      sessionStorage.setItem('token', tempToken);
+
+      const userInfo = JSON.parse(atob(tempToken.split('.')[1]));
+      setUser(userInfo.username);
+      toast('You are logged in now');
+      navigate('/categories');
+    } catch (error) {
+      console.error('Registration or login failed:', error);
+      toast.error('Registration or login failed. Please try again.');
+    }
+  };
 
   return (
     <div style={{ textAlign: 'center' }}>
-      <br /><h2>Sign Up</h2>
+      <h2>Sign Up</h2>
       <MDBContainer className="p-3 my-5 d-flex flex-column w-50">
-        <MDBInput wrapperClass='mb-4' label='Username' id='form1' type='text' onChange={(e) => setuName(e.target.value)} />
-        <MDBInput wrapperClass='mb-4' label='Password' id='form2' type='password' onChange={(e) => setpwd(e.target.value)} />
-        <MDBInput wrapperClass='mb-4' label='Email' id='form3' type='email' onChange={(e) => setEmail(e.target.value)} />
+        <MDBInput label='Username' type='text' onChange={(e) => setUName(e.target.value)} />
+        <MDBInput label='Password' type='password' onChange={(e) => setPwd(e.target.value)} />
+        <MDBInput label='Email' type='email' onChange={(e) => setEmail(e.target.value)} />
 
-        <MDBBtn className="mb-4" onClick={() => doRegister()}>Sign Up</MDBBtn>
-
+        <MDBBtn onClick={doRegister}>Sign Up</MDBBtn>
       </MDBContainer>
     </div>
   );
-}
+};
 
-export default Register
+export default Register;

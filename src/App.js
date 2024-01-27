@@ -1,33 +1,43 @@
-import './App.css';
+// App.js
+import React, { useEffect, useState, createContext } from 'react';
 import { Outlet } from 'react-router-dom';
 import NavBar from './components/NavBar';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'
 import Footer from './components/Footer';
-import React, { useEffect, useState } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Single import is sufficient
+import 'react-toastify/dist/ReactToastify.css';
+import './App.css';
+
+// Define Context outside of the App component
+export const UserContext = createContext();
 
 function App() {
-  const [user, setuser] = useState('user')
-  const token = sessionStorage.getItem('token')
-  const tokenData = { "Content-Type": "application/json", "Authorization": "Bearer " + token, }
+  const [user, setUser] = useState('user');
+  
   useEffect(() => {
-    token && 'user' && setuser(JSON.parse(atob(token.split('.')[1])).username)
-  }, [])
+    const token = sessionStorage.getItem('token');
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUser(payload.username);
+    }
+  }, []);
+
+  // Context value object
+  const contextValue = {
+    user,
+    setUser,
+  };
 
   return (
-    <Context.Provider value={{ uservalue: [user, setuser], tokenvalue: [tokenData] }}>
+    <UserContext.Provider value={contextValue}>
       <div className='App'>
         <NavBar />
         <Outlet />
         <ToastContainer />
         <Footer />
       </div>
-    </Context.Provider>
+    </UserContext.Provider>
   );
 }
 
 export default App;
-
-export const Context = React.createContext()
